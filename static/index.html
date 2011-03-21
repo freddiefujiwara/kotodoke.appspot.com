@@ -1,0 +1,207 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript" src="http://google-maps-utility-library-v3.googlecode.com/svn/tags/markermanager/1.0/src/markermanager.js"></script> 
+<script type="text/javascript" src="http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer_packed.js"></script>
+<script type="text/javascript" src="http://kotodoke.appspot.com/javascripts/shelters.js"></script>
+<script src="http://widgets.twimg.com/j/2/widget.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script> 
+<script type="text/javascript">
+  var shelter = null;
+  if("" != window.location.hash){
+    var id = window.location.hash;
+    for (var level in markers) {
+      for (var i = 0; i < markers[level].length; i++) {
+        if('#!/'+markers[level][i].id == id){
+          shelter = markers[level][i];
+        }
+      }
+    }
+
+  }
+  function mapShow() {
+    var infowindow = null;
+    var latlng = new google.maps.LatLng(38.268376,140.876422);//仙台市
+    var myOptions = {
+      zoom: 8,
+      center: latlng,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+    var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+    if (markers) {
+      for (var level in markers) {
+        for (var i = 0; i < markers[level].length; i++) {
+          var details = markers[level][i];
+          markers[level][i] = new google.maps.Marker({
+            title: details.name,
+            position: new google.maps.LatLng(
+            details.location[0], details.location[1]),
+            clickable: true,
+            draggable: false,
+            flat: true,
+            icon: new google.maps.MarkerImage('http://kotodoke.appspot.com/images/shelter.png')
+          });
+          markers[level][i].detailInfos = details;
+          google.maps.event.addListener(markers[level][i], 'click', function(event) {
+            if(null != infowindow){
+              infowindow.close();
+            }
+            var contentString = '<div>'+this.title+'</div><ul><li><a target="_blank" href="http://twitter.com/share?count=horizontal&text=['+this.title+'%E3%81%AB%E5%B1%8A%E3%81%91!]%20%22%E8%A8%80%E8%91%89%E3%82%92%E5%85%A5%E3%82%8C%E3%81%A6%E3%81%8F%E3%81%A0%E3%81%95%E3%81%84%22%23ktdk'+this.detailInfos.id+'&url=http%3A%2F%2Fkotodoke.appspot.com%2F&via=kotodoke">'+this.title+'宛の言葉を書きこむ</a></li><li><a href="#!/'+this.detailInfos.id+'" target="_blank">印刷してこの避難所に言葉を届ける</a></li></ul>';
+            infowindow = new google.maps.InfoWindow({
+              content: contentString
+            });
+            infowindow.open(map,this);
+          });
+        }
+      }
+    }
+    mc = new MarkerClusterer(map, markers.shelters, {maxZoom: 10});
+  }
+
+</script>
+<style>
+/* Z-index of #mask must lower than #boxes .window */
+#boxes #mask {
+  position:absolute;
+  z-index:9000;
+  background-color:#3BB9FF;
+  display:none;
+}
+#boxes .window {
+  background-color:#fff;
+  position:absolute;
+  width:840px;
+  height:400px;
+  display:none;
+  z-index:9999;
+  padding:20px;
+}
+ 
+ 
+/* Customize your modal window here, you can add background image too */
+#boxes #dialog {
+  width:815px; 
+  height:380px;
+}
+</style>
+</head>
+<body>
+  <div id="map_canvas" style="width:100%; height:100%"></div>
+  <div id="boxes">
+    <!-- #customize your modal window here -->
+    <div id="dialog" class="window">
+        <img src="http://kotodoke.appspot.com/images/shelter.png" /><b>言届けとは</b> | 
+        <!-- close button is defined as close class -->
+        <a href="#" class="close">始める</a>
+        <div> 
+          <ul>
+            <li>避難所にメッセージを送りたい方
+              <ol>
+                <li>マップから言葉(メッセージ)を送りたい避難所を選んでください</li>
+                <li>ooo宛の言葉を書きこむをクリックしてください</li>
+                <li>"言葉を入れてください"の部分を編集してメッセージを書き込んでください(twitterへのログインが必須です)</li>
+              </ol>
+            </li>
+            <li>避難所に近くて印刷手段がある方
+              <ol>
+                 <li>マップから最寄りの避難所を選んでください</li>
+                 <li>印刷してこの避難所に言葉を届けるをクリックしてください</li>
+                 <li>印刷したメッセージを避難所に配達してください</li>
+              </ol>
+            </li>
+          </ul>
+        </div> 
+    </div>
+    <!-- Do not remove div#mask, because you'll need it to fill the whole screen --> 
+    <div id="mask"></div>
+  </div>
+  <script type="text/javascript">
+    if(null != shelter){
+      $(document.body).append($('<input type="button" value="印刷する" onclick="window.print();" style="width:100%;font-size:64px;"/>'));
+      $("#map_canvas").remove();
+      $("#boxes").remove();
+      var widget = new TWTR.Widget({
+        version: 2,
+        type: 'search',
+        search: '#ktdk'+shelter.id,
+        interval: 1000,
+        title: shelter.prefecture+shelter.city,
+        subject: shelter.name +"宛のメッセージ",
+        width:'auto', 
+        height: $(document.body).height()*0.8,
+        theme: {
+          shell: {
+            background: '#8ec1da',
+            color: '#ffffff'
+          },
+          tweets: {
+            background: '#ffffff',
+            color: '#444444',
+            links: '#1985b5'
+          }
+        },
+        features: {
+          scrollbar: true,
+          loop: false,
+          live: true,
+          hashtags: true,
+          timestamp: true,
+          avatars: true,
+          toptweets: true,
+          behavior: 'all'
+        }
+      });
+      widget.render();
+      widget.start();
+   }else{
+    //select all the a tag with name equal to modal
+    (function() {
+        $("#map_canvas").hide();
+        //Get the A tag
+        var id = "#dialog";
+     
+        //Get the screen height and width
+        var maskHeight = $(document).height();
+        var maskWidth = $(window).width();
+     
+        //Set height and width to mask to fill up the whole screen
+        $('#mask').css({'width':maskWidth,'height':maskHeight});
+         
+        //transition effect     
+        $('#mask').fadeIn(1000);    
+        $('#mask').fadeTo("slow",0.8);  
+     
+        //Get the window height and width
+        var winH = $(window).height();
+        var winW = $(window).width();
+               
+        //Set the popup window to center
+        $(id).css('top',  winH/2-$(id).height()/2);
+        $(id).css('left', winW/2-$(id).width()/2);
+     
+        //transition effect
+        $(id).fadeIn(2000); 
+        console.debug($(id));
+     
+    })();
+     
+    //if close button is clicked
+    $('.window .close').click(function (e) {
+        //Cancel the link behavior
+        e.preventDefault();
+        $('#mask, .window').hide();
+        $("#map_canvas").show(100,mapShow);
+    });     
+     
+    //if mask is clicked
+    $('#mask').click(function () {
+        $(this).hide();
+        $('.window').hide();
+        $("#map_canvas").show();
+    });         
+   }
+  </script>
+</body>
+</html>

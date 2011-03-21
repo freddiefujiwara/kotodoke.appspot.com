@@ -1,0 +1,28 @@
+application: kotodoke
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /
+  static_files: static/index.html
+  upload: static/index.html
+
+- url: /javascripts/shelter.js
+  static_files: static/shelter.js
+  upload: static/shelter.js
+
+- url: /favicon.ico
+  static_files: images/favicon.ico
+  upload: images/favicon.ico
+
+- url: /images/shelter.png
+  static_files: images/shelter.png
+  upload: images/shelter.png
+
+- url: /crons/.*
+  script: crons.py
+  login: admin
+
+- url: /.*
+  script: handlers.py
